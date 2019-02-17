@@ -1,34 +1,27 @@
 import React, { Component } from "react";
 import { StyleSheet, View } from "react-native";
 
-import PlaceList from "./src/components/PlaceList/PlaceList";
 import PlaceInput from "./src/components/PlaceInput/PlaceInput";
-import placeImage from "./src/assets/beautiful-place.jpg";
+import PlaceList from "./src/components/PlaceList/PlaceList";
 import PlaceDetail from "./src/components/PlaceDetail/PlaceDetail";
 
-type Props = {};
-export default class App extends Component<Props> {
+export default class App extends Component {
   state = {
     places: [],
-    selectedPlace: null,
+    selectedPlace: null
   };
 
   placeAddedHandler = placeName => {
     this.setState(prevState => {
       return {
         places: prevState.places.concat({
-          key: Math.random() + "",
+          key: Math.random(),
           name: placeName,
-          image: placeImage,
-        }),
-      };
-    });
-  };
-
-  placeSelectedHandler = key => {
-    this.setState(prevState => {
-      return {
-        selectedPlace: prevState.places.find(place => place.key === key),
+          image: {
+            uri:
+              "https://c1.staticflickr.com/5/4096/4744241983_34023bf303_b.jpg"
+          }
+        })
       };
     });
   };
@@ -36,16 +29,28 @@ export default class App extends Component<Props> {
   placeDeletedHandler = () => {
     this.setState(prevState => {
       return {
-        places: prevState.places.filter(
-          place => place.key !== prevState.selectedPlace.key,
-        ),
-        selectedPlace: null,
+        places: prevState.places.filter(place => {
+          return place.key !== prevState.selectedPlace.key;
+        }),
+        selectedPlace: null
       };
     });
   };
 
   modalClosedHandler = () => {
-    this.setState({ selectedPlace: null });
+    this.setState({
+      selectedPlace: null
+    });
+  };
+
+  placeSelectedHandler = key => {
+    this.setState(prevState => {
+      return {
+        selectedPlace: prevState.places.find(place => {
+          return place.key === key;
+        })
+      };
+    });
   };
 
   render() {
@@ -53,8 +58,8 @@ export default class App extends Component<Props> {
       <View style={styles.container}>
         <PlaceDetail
           selectedPlace={this.state.selectedPlace}
-          onModalClosed={this.modalClosedHandler}
           onItemDeleted={this.placeDeletedHandler}
+          onModalClosed={this.modalClosedHandler}
         />
         <PlaceInput onPlaceAdded={this.placeAddedHandler} />
         <PlaceList
@@ -69,11 +74,9 @@ export default class App extends Component<Props> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
-    paddingRight: 20,
-    paddingLeft: 20,
+    padding: 26,
     backgroundColor: "#fff",
     alignItems: "center",
-    justifyContent: "flex-start",
-  },
+    justifyContent: "flex-start"
+  }
 });
