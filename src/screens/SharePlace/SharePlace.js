@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { View, Button, StyleSheet, ScrollView } from "react-native";
+import { View, Button, StyleSheet, ScrollView, Dimensions } from "react-native";
 import { addPlace } from "../../store/actions/places";
 import MainText from "../../components/UI/MainText/MainText";
 import HeadingText from "../../components/UI/HeadingText/HeadingText";
@@ -9,13 +9,28 @@ import PickImage from "../../components/PickImage/PickImage";
 import PickLocation from "../../components/PickLocation/PickLocation";
 
 class SharePlaceScreen extends Component {
-  constructor(props) {
-    super(props);
-    this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
-  }
+  static navigatorStyle = {
+    navBarButtonColor: "#FFA500",
+  };
 
   state = {
     placeName: "",
+    viewMode: "portrait",
+  };
+
+  componentDidMount = () => {
+    Dimensions.addEventListener("change", this.updateStyles);
+    this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
+  };
+
+  componentWillUnmount = () => {
+    Dimensions.removeEventListener("change", this.updateStyles);
+  };
+
+  updateStyles = dims => {
+    this.setState({
+      viewMode: dims.window.height > 500 ? "portrait" : "landscape",
+    });
   };
 
   placeNameChangedHandler = val => {
@@ -39,19 +54,29 @@ class SharePlaceScreen extends Component {
   };
 
   render() {
-    return (
-      <ScrollView contentContainerStyle={styles.container}>
+    let headingText = null;
+
+    if (this.state.viewMode === "portrait") {
+      headingText = (
         <MainText>
           <HeadingText>Share a Place with us!</HeadingText>
         </MainText>
-        <PickImage />
-        <PickLocation />
-        <PlaceInput
-          placeName={this.state.placeName}
-          onChangeText={this.placeNameChangedHandler}
-        />
-        <View style={styles.button}>
-          <Button title="Share the Place!" onPress={this.placeAddedHandler} />
+      );
+    }
+
+    return (
+      <ScrollView>
+        <View style={styles.container}>
+          {headingText}
+          <PickImage />
+          <PickLocation />
+          <PlaceInput
+            placeName={this.state.placeName}
+            onChangeText={this.placeNameChangedHandler}
+          />
+          <View style={styles.button}>
+            <Button title="Share the Place!" onPress={this.placeAddedHandler} />
+          </View>
         </View>
       </ScrollView>
     );
@@ -62,6 +87,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  landscapePicksContainer: {
+    flexDirection: "row",
+  },
+  portraitPicksContainer: {
+    flexDirection: "row",
   },
 });
 
