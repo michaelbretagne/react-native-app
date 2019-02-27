@@ -25,6 +25,10 @@ class SharePlaceScreen extends Component {
           notEmpty: true,
         },
       },
+      location: {
+        value: null,
+        valid: false,
+      },
     },
   };
 
@@ -60,9 +64,10 @@ class SharePlaceScreen extends Component {
   };
 
   placeAddedHandler = () => {
-    if (this.state.controls.placeName.value.trim() !== "") {
-      this.props.onAddPlace(this.state.controls.placeName.value);
-    }
+    this.props.onAddPlace(
+      this.state.controls.placeName.value,
+      this.state.controls.location.value,
+    );
   };
 
   onNavigatorEvent = event => {
@@ -73,6 +78,20 @@ class SharePlaceScreen extends Component {
         });
       }
     }
+  };
+
+  locationPickerHandler = location => {
+    this.setState(prevState => {
+      return {
+        controls: {
+          ...prevState.controls,
+          location: {
+            value: location,
+            valid: true,
+          },
+        },
+      };
+    });
   };
 
   render() {
@@ -91,14 +110,17 @@ class SharePlaceScreen extends Component {
         <View style={styles.container}>
           {headingText}
           <PickImage />
-          <PickLocation />
+          <PickLocation onLocationPick={this.locationPickerHandler} />
           <PlaceInput
             placeData={this.state.controls.placeName}
             onChangeText={this.placeNameChangedHandler}
           />
           <View style={styles.button}>
             <Button
-              disabled={!this.state.controls.placeName.valid}
+              disabled={
+                !this.state.controls.placeName.valid ||
+                !this.state.controls.location.valid
+              }
               title="Share the Place!"
               onPress={this.placeAddedHandler}
             />
@@ -127,7 +149,8 @@ const styles = StyleSheet.create({
 
 const mapDispatchToProps = dispatch => {
   return {
-    onAddPlace: placeName => dispatch(addPlace(placeName)),
+    onAddPlace: (placeName, location) =>
+      dispatch(addPlace(placeName, location)),
   };
 };
 
