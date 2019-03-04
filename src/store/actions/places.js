@@ -1,7 +1,9 @@
-import { ADD_PLACE, DELETE_PLACE } from "./actionTypes";
+import { SET_PLACES, REMOVE_PLACE } from "./actionTypes";
+import { uiStartLoading, uiStopLoading } from "./index";
 
 export const addPlace = (placeName, location, image) => {
   return dispatch => {
+    dispatch(uiStartLoading());
     fetch(
       "https://us-central1-share-awesome-pl-1551158588067.cloudfunctions.net/storeImage",
       {
@@ -9,8 +11,17 @@ export const addPlace = (placeName, location, image) => {
         body: JSON.stringify({ image: image.base64 }),
       },
     )
-      .catch(err => console.log(err))
+      .catch(err => {
+        console.log(err);
+        alert("Something went wrong, please try again!");
+        dispatch(uiStopLoading());
+      })
       .then(res => res.json())
+      .catch(err => {
+        console.log(err);
+        alert(err);
+        dispatch(uiStopLoading());
+      })
       .then(parsedRes => {
         const placeData = {
           name: placeName,
@@ -18,24 +29,83 @@ export const addPlace = (placeName, location, image) => {
           image: parsedRes.imageUrl,
         };
         return fetch(
-          "https://share-awesome-pl-1551158588067.firebaseio.com/.places.json",
+          "https://share-awesome-pl-1551158588067.firebaseio.com/places.json",
           {
             method: "POST",
             body: JSON.stringify(placeData),
           },
         )
-          .catch(err => console.log(err))
+          .catch(err => {
+            console.log(err);
+            alert("Something went wrong, please try again!");
+            dispatch(uiStopLoading());
+          })
           .then(res => res.json())
+          .catch(err => {
+            console.log(err);
+            alert("Something went wrong, please try again!");
+            dispatch(uiStopLoading());
+          })
           .then(parsedRes => {
-            console.log(parsedRes);
+            dispatch(uiStopLoading());
           });
       });
   };
 };
 
-export const deletePlace = key => {
+export const getPlaces = () => {
+  return dispatch => {
+    fetch("https://share-awesome-pl-1551158588067.firebaseio.com/places.json")
+      .catch(err => {
+        console.log(err);
+        alert("Something went wrong, please try again!");
+      })
+      .then(res => res.json())
+      .then(parsedRes => {
+        const places = [];
+        for (let key in parsedRes) {
+          places.push({
+            ...parsedRes[key],
+            image: {
+              uri: parsedRes[key].image,
+            },
+            key,
+          });
+        }
+        dispatch(setPlaces(places));
+      });
+  };
+};
+
+export const setPlaces = places => {
   return {
-    type: DELETE_PLACE,
-    placeKey: key,
+    type: SET_PLACES,
+    places,
+  };
+};
+
+export const deletePlace = key => {
+  return dispatch => {
+    fetch(
+      `https://share-awesome-pl-1551158588067.firebaseio.com/places/${key}.json`,
+      {
+        method: "DELETE",
+      },
+    )
+      .catch(err => {
+        console.log(err);
+        alert("Something went wrong, please try again!");
+      })
+      .then(res => res.json())
+      .then(parsedRes => {
+        dispatch(removePlace(key));
+      });
+  };
+};
+
+export const removePlace = key => {
+  return {
+    type: REMOVE_PLACE,
+    key,
   };
 };

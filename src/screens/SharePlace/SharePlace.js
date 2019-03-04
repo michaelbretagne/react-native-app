@@ -1,6 +1,14 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { View, Button, StyleSheet, ScrollView, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  ActivityIndicator,
+} from "react-native";
 import { addPlace } from "../../store/actions/places";
 import MainText from "../../components/UI/MainText/MainText";
 import HeadingText from "../../components/UI/HeadingText/HeadingText";
@@ -124,6 +132,22 @@ class SharePlaceScreen extends Component {
       );
     }
 
+    let submitButton = (
+      <Button
+        disabled={
+          !this.state.controls.placeName.valid ||
+          !this.state.controls.location.valid ||
+          !this.state.controls.image.valid
+        }
+        title="Share the Place!"
+        onPress={this.placeAddedHandler}
+      />
+    );
+
+    if (this.props.isLoading) {
+      submitButton = <ActivityIndicator />;
+    }
+
     return (
       <ScrollView>
         <View style={styles.container}>
@@ -134,17 +158,7 @@ class SharePlaceScreen extends Component {
             placeData={this.state.controls.placeName}
             onChangeText={this.placeNameChangedHandler}
           />
-          <View style={styles.button}>
-            <Button
-              disabled={
-                !this.state.controls.placeName.valid ||
-                !this.state.controls.location.valid ||
-                !this.state.controls.image.valid
-              }
-              title="Share the Place!"
-              onPress={this.placeAddedHandler}
-            />
-          </View>
+          <View style={styles.button}>{submitButton}</View>
         </View>
       </ScrollView>
     );
@@ -167,6 +181,12 @@ const styles = StyleSheet.create({
   },
 });
 
+const mapStateToProps = state => {
+  return {
+    isLoading: state.ui.isLoading,
+  };
+};
+
 const mapDispatchToProps = dispatch => {
   return {
     onAddPlace: (placeName, location, image) =>
@@ -175,6 +195,6 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps,
 )(SharePlaceScreen);

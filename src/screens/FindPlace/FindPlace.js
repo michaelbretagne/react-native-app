@@ -8,6 +8,7 @@ import {
   Animated,
 } from "react-native";
 import PlaceList from "../../components/PlaceList/PlaceList";
+import { getPlaces } from "../../store/actions/";
 
 class FindPlaceScreen extends Component {
   static navigatorStyle = {
@@ -22,6 +23,7 @@ class FindPlaceScreen extends Component {
 
   componentDidMount() {
     this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
+    this.props.onLoadPlaces();
   }
 
   onNavigatorEvent = event => {
@@ -137,4 +139,13 @@ const mapStateToProps = state => {
   };
 };
 
-export default connect(mapStateToProps)(FindPlaceScreen);
+const mapDispatchToProps = dispatch => {
+  return {
+    onLoadPlaces: () => dispatch(getPlaces()),
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(FindPlaceScreen);

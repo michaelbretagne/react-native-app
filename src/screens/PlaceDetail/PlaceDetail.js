@@ -38,7 +38,6 @@ class PlaceDetail extends Component {
   };
 
   render() {
-    console.log(this.props.selectedPlace);
     return (
       <View
         style={[
