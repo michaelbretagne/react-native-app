@@ -1,17 +1,15 @@
-import { TRY_AUTH } from "./actionTypes";
+import { AUTH_SET_TOKEN } from "./actionTypes";
 import { uiStartLoading, uiStopLoading } from "./index";
 import startTabs from "../../screens/MainTabs/startMainTabs";
 import { AUTH_API_KEY } from "react-native-dotenv";
 
 export const tryAuth = (authData, authMode) => {
-  console.log("here");
-  console.log(AUTH_API_KEY);
   return dispatch => {
     dispatch(uiStartLoading());
     let url = `https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=${AUTH_API_KEY}`;
 
     if (authMode === "signup") {
-      url = url = `https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=${AUTH_API_KEY}`;
+      url = `https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=${AUTH_API_KEY}`;
     }
 
     fetch(url, {
@@ -27,17 +25,43 @@ export const tryAuth = (authData, authMode) => {
     })
       .catch(err => {
         console.log(err);
-        alert("Something went wrong, please try again!");
+        alert("Authentication failed: " + err + "Please, try agin!");
         dispatch(uiStopLoading());
       })
       .then(res => res.json())
       .then(parsedRes => {
         dispatch(uiStopLoading());
-        if (parsedRes.error) {
-          alert("Oops! Something went wrong: " + parsedRes.error.message);
+        if (!parsedRes.idToken || parsedRes.error) {
+          alert(
+            "Authentication failed: " +
+              parsedRes.error.message +
+              "Please, try agin!",
+          );
         } else {
+          dispatch(authSetToken(parsedRes.idToken));
           startTabs();
         }
       });
+  };
+};
+
+export const authSetToken = token => {
+  return {
+    type: AUTH_SET_TOKEN,
+    token,
+  };
+};
+
+export const authGetToken = () => {
+  return (dispatch, getState) => {
+    const promise = new Promise((resolve, reject) => {
+      const token = getState().auth.token;
+      if (!token) {
+        reject();
+      } else {
+        resolve(token);
+      }
+    });
+    return promise;
   };
 };

@@ -1,27 +1,31 @@
 import { SET_PLACES, REMOVE_PLACE } from "./actionTypes";
-import { uiStartLoading, uiStopLoading } from "./index";
+import { uiStartLoading, uiStopLoading, authGetToken } from "./index";
 
 export const addPlace = (placeName, location, image) => {
   return dispatch => {
+    let authToken;
     dispatch(uiStartLoading());
-    fetch(
-      "https://us-central1-share-awesome-pl-1551158588067.cloudfunctions.net/storeImage",
-      {
-        method: "POST",
-        body: JSON.stringify({ image: image.base64 }),
-      },
-    )
+    dispatch(authGetToken())
+      .catch(() => {
+        alert("No valid token found!");
+      })
+      .then(token => {
+        authToken = token;
+        return fetch(
+          "https://us-central1-share-awesome-pl-1551158588067.cloudfunctions.net/storeImage",
+          {
+            method: "POST",
+            body: JSON.stringify({ image: image.base64 }),
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+      })
       .catch(err => {
         console.log(err);
         alert("Something went wrong, please try again!");
         dispatch(uiStopLoading());
       })
       .then(res => res.json())
-      .catch(err => {
-        console.log(err);
-        alert(err);
-        dispatch(uiStopLoading());
-      })
       .then(parsedRes => {
         const placeData = {
           name: placeName,
@@ -29,36 +33,35 @@ export const addPlace = (placeName, location, image) => {
           image: parsedRes.imageUrl,
         };
         return fetch(
-          "https://share-awesome-pl-1551158588067.firebaseio.com/places.json",
+          `https://share-awesome-pl-1551158588067.firebaseio.com/places.json?auth=${authToken}`,
           {
             method: "POST",
             body: JSON.stringify(placeData),
           },
-        )
-          .catch(err => {
-            console.log(err);
-            alert("Something went wrong, please try again!");
-            dispatch(uiStopLoading());
-          })
-          .then(res => res.json())
-          .catch(err => {
-            console.log(err);
-            alert("Something went wrong, please try again!");
-            dispatch(uiStopLoading());
-          })
-          .then(parsedRes => {
-            dispatch(uiStopLoading());
-          });
+        );
+      })
+      .then(res => res.json())
+      .then(parsedRes => {
+        dispatch(uiStopLoading());
+      })
+      .catch(err => {
+        console.log(err);
+        alert("Something went wrong, please try again!");
+        dispatch(uiStopLoading());
       });
   };
 };
 
 export const getPlaces = () => {
   return dispatch => {
-    fetch("https://share-awesome-pl-1551158588067.firebaseio.com/places.json")
-      .catch(err => {
-        console.log(err);
-        alert("Something went wrong, please try again!");
+    dispatch(authGetToken())
+      .then(token => {
+        return fetch(
+          `https://share-awesome-pl-1551158588067.firebaseio.com/places.json?auth=${token}`,
+        );
+      })
+      .catch(() => {
+        alert("No valid token found!");
       })
       .then(res => res.json())
       .then(parsedRes => {
@@ -73,6 +76,10 @@ export const getPlaces = () => {
           });
         }
         dispatch(setPlaces(places));
+      })
+      .catch(err => {
+        console.log(err);
+        alert("Something went wrong, please try again!");
       });
   };
 };
@@ -86,19 +93,27 @@ export const setPlaces = places => {
 
 export const deletePlace = key => {
   return dispatch => {
-    fetch(
-      `https://share-awesome-pl-1551158588067.firebaseio.com/places/${key}.json`,
-      {
-        method: "DELETE",
-      },
-    )
-      .catch(err => {
-        console.log(err);
-        alert("Something went wrong, please try again!");
+    dispatch(authGetToken())
+      .catch(() => {
+        alert("No valid token found!");
+      })
+      .then(token => {
+        dispatch(removePlace(key));
+        return fetch(
+          `https://share-awesome-pl-1551158588067.firebaseio.com/places/${key}.json?auth=${token}`,
+          {
+            method: "DELETE",
+          },
+        );
       })
       .then(res => res.json())
       .then(parsedRes => {
-        dispatch(removePlace(key));
+        console.log("Done!");
+      })
+      .catch(err => {
+        console.log(err);
+        console.log("here");
+        alert("Something went wrong, please try again!");
       });
   };
 };
