@@ -38,11 +38,17 @@ Navigation.registerComponent(
   Provider,
 );
 
-Navigation.registerComponent("awesome-places.SideDrawer", () => SideDrawer);
+Navigation.registerComponent(
+  "awesome-places.SideDrawer",
+  () => SideDrawer,
+  store,
+  Provider,
+);
 
-Navigation.startSingleScreenApp({
-  screen: {
-    screen: "awesome-places.AuthScreen",
-    title: "Login",
-  },
-});
+export default () =>
+  Navigation.startSingleScreenApp({
+    screen: {
+      screen: "awesome-places.AuthScreen",
+      title: "Login",
+    },
+  });
